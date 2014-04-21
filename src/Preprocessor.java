@@ -21,7 +21,7 @@ public class Preprocessor {
 	
 	
 	private boolean isPunctuation(String input) {
-		return input.length() == 1 && input.matches("[a-zA-Z]");
+		return input.length() == 1 && input.matches("[^a-zA-Z]");
 	}
 	
 	private boolean isNumber(String input) {
@@ -47,7 +47,7 @@ public class Preprocessor {
 		Scanner scnr = new Scanner(file);
 				
 		// Get subject content
-		String[] subject = scnr.next().split("\\s");
+		String[] subject = scnr.nextLine().split("\\s");
 				
 		for (int i = 1; i < subject.length; ++i) {
 			if (!isPunctuation(subject[i]) 
@@ -59,8 +59,8 @@ public class Preprocessor {
 		
 		
 		// Get body content
-		while (scnr.hasNext()) {
-			String[] bodyLine = scnr.next().split("\\s");
+		while (scnr.hasNextLine()) {
+			String[] bodyLine = scnr.nextLine().split("\\s");
 			
 			for (int i = 0; i < bodyLine.length; ++i) {
 				if (!isPunctuation(bodyLine[i]) 
