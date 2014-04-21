@@ -1,11 +1,11 @@
 
-public class Word {
+public class Word implements Comparable<Word> {
 	private String word;
 	private int docFreq;
 
-	public Word(String word) {
+	public Word(String word, int docFreq) {
 		this.word = word;
-		this.docFreq = 0;
+		this.docFreq = docFreq;
 	}
 	
 	public String word() {
@@ -18,5 +18,15 @@ public class Word {
 	
 	public void setDocFreq(int docFreq) {
 		this.docFreq = docFreq;
+	}
+
+	@Override
+	public int compareTo(Word o) {
+		if (this.docFreq > o.docFreq) {
+			return -1;
+		} else if (this.docFreq < o.docFreq) {
+			return 1;
+		}
+		return 0;
 	}
 }

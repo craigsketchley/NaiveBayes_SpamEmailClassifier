@@ -1,11 +1,16 @@
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 import java.util.Scanner;
 
 
 public class Preprocessor {
 	private HashMap<String, Integer> stopWords;
+	private ArrayList<Document> docList;
+	private HashMap<String, Integer> bodyBagOWords;
+	private HashMap<String, Integer> subjectBagOWords;	
 	
 	public Preprocessor(File stopWordsFile) throws IOException {
 		Scanner scnr = new Scanner(stopWordsFile);
@@ -15,6 +20,10 @@ public class Preprocessor {
 		while (scnr.hasNext()) {
 			stopWords.put(scnr.next(), 0);
 		}
+		
+		docList = new ArrayList<Document>();
+		bodyBagOWords = new HashMap<String, Integer>();
+		subjectBagOWords = new HashMap<String, Integer>();
 		
 		scnr.close();
 	}
@@ -41,8 +50,8 @@ public class Preprocessor {
 	}
 	
 	
-	public Document parseDocument(File file) throws IOException {
-		Document output = new Document();
+	public void addDocument(File file) throws IOException {
+		Document doc = new Document();
 		
 		Scanner scnr = new Scanner(file);
 				
@@ -53,7 +62,14 @@ public class Preprocessor {
 			if (!isPunctuation(subject[i]) 
 					&& !isNumber(subject[i])
 					&& !isStopWord(subject[i])) {
-				output.addToSubject(subject[i]);
+				if (!doc.subjectHasWord(subject[i])) {
+					if (subjectBagOWords.containsKey(subject[i])) {
+						subjectBagOWords.put(subject[i], subjectBagOWords.get(subject[i]) + 1);
+					} else {
+						subjectBagOWords.put(subject[i], 1);
+					}
+				}
+				doc.addToSubject(subject[i]);
 			}
 		}
 		
@@ -66,16 +82,62 @@ public class Preprocessor {
 				if (!isPunctuation(bodyLine[i]) 
 						&& !isNumber(bodyLine[i])
 						&& !isStopWord(bodyLine[i])) {
-					output.addToBody(bodyLine[i]);
+					if (!doc.bodyHasWord(bodyLine[i])) {
+						if (bodyBagOWords.containsKey(bodyLine[i])) {
+							bodyBagOWords.put(bodyLine[i], bodyBagOWords.get(bodyLine[i]) + 1);
+						} else {
+							bodyBagOWords.put(bodyLine[i], 1);
+						}
+					}
+					doc.addToBody(bodyLine[i]);
 				}
 			}
 		}
 		
-		output.sortDocument();
+		String spam = "spmsg";
+		
+		if (file.getName().substring(0, spam.length()).equals(spam)) {
+			doc.setSpam();
+		}
 		
 		scnr.close();
-		return output;
+		docList.add(doc);
 	}
 	
+	public ArrayList<Document> getDocuments() {
+		return this.docList;
+	}
 	
+	public Word[] getTopBodyWords(int size) {
+		PriorityQueue<Word> bodyWords = new PriorityQueue<Word>();
+		
+		for (String s : bodyBagOWords.keySet()) {
+			bodyWords.add(new Word(s, bodyBagOWords.get(s)));
+		}
+		
+		Word[] output = new Word[size];
+		
+		for (int i = 0; i < size; i++) {
+			output[i] = bodyWords.poll();
+		}
+		
+		return output;
+	}
+
+	public Word[] getTopSubjectWords(int size) {
+		PriorityQueue<Word> subjectWords = new PriorityQueue<Word>();
+		
+		for (String s : subjectBagOWords.keySet()) {
+			subjectWords.add(new Word(s, subjectBagOWords.get(s)));
+		}
+		
+		
+		Word[] output = new Word[size];
+		
+		for (int i = 0; i < size; i++) {
+			output[i] = subjectWords.poll();
+		}
+		
+		return output;
+	}
 }
