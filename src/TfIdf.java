@@ -18,6 +18,12 @@ public abstract class TfIdf {
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(output));
 		
+		for (int i = 0; i < words.length; i++) {
+			writer.write("f" + (i + 1) + ",");
+		}
+		writer.write("class");
+		writer.newLine();
+		
 		double [] calcValues = new double[words.length];
 
 		for (Document d : docs) {
@@ -32,12 +38,11 @@ public abstract class TfIdf {
 			for (int i = 0; i < words.length; i++) {
 				Double normVal = (mag != 0) ? calcValues[i] / mag : 0;
 				writer.write(normVal.toString());
-				if (i == words.length - 1) {
-					writer.write('\n');
-				} else {
-					writer.write(',');
-				}
+				writer.write(',');
 			}
+			
+			writer.write(d.isSpam() ? "1" : "0");
+			writer.newLine();
 		}		
 		
 		writer.close();
@@ -49,6 +54,12 @@ public abstract class TfIdf {
 		File output = new File("body.csv");
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(output));
+		
+		for (int i = 0; i < words.length; i++) {
+			writer.write("f" + (i + 1) + ",");
+		}
+		writer.write("class");
+		writer.newLine();
 		
 		double [] calcValues = new double[words.length];
 		
@@ -64,12 +75,11 @@ public abstract class TfIdf {
 			for (int i = 0; i < words.length; i++) {
 				Double normVal = (mag != 0) ? calcValues[i] / mag : 0;
 				writer.write(normVal.toString());
-				if (i == words.length - 1) {
-					writer.write('\n');
-				} else {
-					writer.write(',');
-				}
+				writer.write(',');
 			}
+			
+			writer.write(d.isSpam() ? "1" : "0");
+			writer.newLine();
 		}		
 		
 		writer.close();
