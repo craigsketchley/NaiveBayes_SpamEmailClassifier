@@ -1,7 +1,6 @@
 package classification;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,16 +47,7 @@ public class NaiveBayes {
 			}
 			exampleClasses.get(e.classType).add(e);
 		}
-		
-		int totalNumberOfExamples = examples.size();
-		
-		int minStrataSize = totalNumberOfExamples / kFold;
-		
-		int numberOfLargerStrata = totalNumberOfExamples % kFold;
-		
-		int numberOfSmallerStrata = kFold - numberOfLargerStrata;
-		
-		
+				
 		HashMap<String, Integer> classTypeProportion = new HashMap<String, Integer>();
 		
 		for (String classType : exampleClasses.keySet()) {
@@ -69,7 +59,7 @@ public class NaiveBayes {
 		for (int i = 0; i < kFold; i++) {
 			strata.add(new ArrayList<Example>());
 			for (String classType : classTypeProportion.keySet()) {
-				for (int j = 0; j < classTypeProportion.get(classType); j++) { // TODO: maybe use a stack/queue.
+				for (int j = 0; j < classTypeProportion.get(classType); j++) { // TODO: it works, but maybe use a stack/queue.
 					strata.get(i).add(exampleClasses.get(classType).remove(exampleClasses.get(classType).size() - 1));
 				}
 			}
@@ -106,6 +96,7 @@ public class NaiveBayes {
 			
 			train();
 			
+			System.out.println("Using strata " + (i+1) + " as test data.");
 			accuracy[i] = getAccuracy(testSet);
 		}
 		
@@ -126,7 +117,10 @@ public class NaiveBayes {
 		int correctClassifyCount = 0;
 		
 		for (Example e : testSet) {
-			if (e.classType.equals(classify(e))) {
+			System.out.println("Classified: " + e);
+			String classification = classify(e);
+			System.out.println(classification);
+			if (e.classType.equals(classification)) {
 				correctClassifyCount++;
 			}
 		}
@@ -145,17 +139,18 @@ public class NaiveBayes {
 				FeatureStatistics fs = featureStats.get(featureName).get(classType);
 				double x = input.getValues().get(i);
 				double prob = fs.calculateLogProbability(x);
-				
 				logProb += prob;
 				i++;
 			}
 			probabilities.put(classType, logProb);
 		}
 		
-		double maxProb = 0;
-		String classifiedType = "ERROR";
+		double maxProb = Double.NEGATIVE_INFINITY;
+		String classifiedType = "UNCLASSIFIED";
 		
+		System.out.println("Probabilities:");
 		for (String classType : probabilities.keySet()) {
+			System.out.println(classType + " " + probabilities.get(classType));
 			if (probabilities.get(classType) > maxProb) {
 				maxProb = probabilities.get(classType);
 				classifiedType = classType;
@@ -265,6 +260,16 @@ public class NaiveBayes {
 		// Iterate over the featureSets, getting the featureStats for each
 		for (String featureName : featureSets.keySet()) {
 			featureStats.put(featureName, featureSets.get(featureName).getFeatureStatistics());
+		}
+		
+		
+		for (String featureName : featureStats.keySet()) {
+			System.out.println("Feature type: " + featureName);
+			for (String classType : featureStats.get(featureName).keySet()) {
+				System.out.println("\tClasstype: " + classType);
+				System.out.println("\t\tmean: " + featureStats.get(featureName).get(classType).getMean());
+				System.out.println("\t\tstdv: " + featureStats.get(featureName).get(classType).getStdDv());
+			}
 		}
 	}
 	

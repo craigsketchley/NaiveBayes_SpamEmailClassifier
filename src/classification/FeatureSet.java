@@ -53,7 +53,7 @@ public class FeatureSet {
 		stddv /= values.size();
 		stddv -= mean * mean;
 		
-		return new FeatureStatistics(mean, stddv);
+		return new FeatureStatistics(mean, Math.sqrt(stddv));
 	}
 	
 	/**

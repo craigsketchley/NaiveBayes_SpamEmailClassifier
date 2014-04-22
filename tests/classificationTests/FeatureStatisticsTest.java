@@ -23,5 +23,19 @@ public class FeatureStatisticsTest {
 		
 		assertEquals(f.calculateProbability(0), 1.0 / Math.sqrt(2 * Math.PI), DELTA10);
 	}
+	
+	@Test
+	public void logProbability1() {
+		FeatureStatistics f = new FeatureStatistics(0, 1);
+		
+		assertEquals(f.calculateLogProbability(-10), Math.log(f.calculateProbability(-10)), DELTA10);
+	}
+
+	@Test
+	public void logProbability2() {
+		FeatureStatistics f = new FeatureStatistics(3, 4);
+		
+		assertEquals(f.calculateLogProbability(3), Math.log(f.calculateProbability(3)), DELTA10);
+	}
 
 }

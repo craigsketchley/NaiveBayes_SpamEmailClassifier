@@ -10,7 +10,7 @@ public class NaiveBayesExample {
 		NaiveBayes nb = new NaiveBayes();
 
 		try {
-			nb.stratifiedCrossValidation(10, new File("body.csv"));
+			nb.stratifiedCrossValidation(10, new File("iris.csv"));
 		} catch (IOException e) {
 			System.out.println("Urm, somfin went rong.");
 			e.printStackTrace();
