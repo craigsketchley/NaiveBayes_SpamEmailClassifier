@@ -1,10 +1,10 @@
+package datapreparation;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.Scanner;
-
 
 public class Preprocessor {
 	private HashMap<String, Integer> stopWords;
@@ -56,7 +56,7 @@ public class Preprocessor {
 		Scanner scnr = new Scanner(file);
 				
 		// Get subject content
-		String[] subject = scnr.nextLine().split("\\s");
+		String[] subject = scnr.nextLine().toLowerCase().split("\\s");
 				
 		for (int i = 1; i < subject.length; ++i) {
 			if (!isPunctuation(subject[i]) 
@@ -76,7 +76,7 @@ public class Preprocessor {
 		
 		// Get body content
 		while (scnr.hasNextLine()) {
-			String[] bodyLine = scnr.nextLine().split("\\s");
+			String[] bodyLine = scnr.nextLine().toLowerCase().split("\\s");
 			
 			for (int i = 0; i < bodyLine.length; ++i) {
 				if (!isPunctuation(bodyLine[i]) 

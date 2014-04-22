@@ -1,3 +1,4 @@
+package datapreparation;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -19,7 +20,7 @@ public abstract class TfIdf {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(output));
 		
 		for (int i = 0; i < words.length; i++) {
-			writer.write("f" + (i + 1) + ",");
+			writer.write(words[i].word() + ",");
 		}
 		writer.write("class");
 		writer.newLine();
@@ -56,7 +57,7 @@ public abstract class TfIdf {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(output));
 		
 		for (int i = 0; i < words.length; i++) {
-			writer.write("f" + (i + 1) + ",");
+			writer.write(words[i].word() + ",");
 		}
 		writer.write("class");
 		writer.newLine();
