@@ -19,8 +19,8 @@ public abstract class TfIdf {
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(output));
 		
-		for (int i = 0; i < words.length; i++) {
-			writer.write(words[i].word() + ",");
+		for (int i = 1; i <= words.length; i++) {
+			writer.write("f" + i + ",");
 		}
 		writer.write("class");
 		writer.newLine();
@@ -42,7 +42,7 @@ public abstract class TfIdf {
 				writer.write(',');
 			}
 			
-			writer.write(d.isSpam() ? "1" : "0");
+			writer.write(d.isSpam() ? "class1" : "class0");
 			writer.newLine();
 		}		
 		
@@ -56,8 +56,8 @@ public abstract class TfIdf {
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(output));
 		
-		for (int i = 0; i < words.length; i++) {
-			writer.write(words[i].word() + ",");
+		for (int i = 1; i <= words.length; i++) {
+			writer.write("f" + i + ",");
 		}
 		writer.write("class");
 		writer.newLine();
@@ -79,7 +79,7 @@ public abstract class TfIdf {
 				writer.write(',');
 			}
 			
-			writer.write(d.isSpam() ? "1" : "0");
+			writer.write(d.isSpam() ? "class1" : "class0");
 			writer.newLine();
 		}		
 		
