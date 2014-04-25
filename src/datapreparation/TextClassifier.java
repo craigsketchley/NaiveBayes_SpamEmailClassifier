@@ -19,11 +19,9 @@ public class TextClassifier {
 			System.out.println("Error reading the stopWords file");
 			return;
 		}
-		int count = 0;
 		try {
 			for (File f : email.listFiles()) {
 				if (f.isFile()) {
-					++count;
 					pro.addDocument(f);
 				}
 			}

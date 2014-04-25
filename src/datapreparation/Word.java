@@ -21,7 +21,7 @@ public class Word implements Comparable<Word> {
 		this.docFreq = docFreq;
 	}
 
-	//@Override
+	@Override
 	public int compareTo(Word o) {
 		if (this.docFreq > o.docFreq) {
 			return -1;
