@@ -18,7 +18,7 @@ public class NaiveBayesExample {
 		NaiveBayes nb = new NaiveBayes();
 		
 		try {
-			nb.loadCSVFile("data/iris.csv");
+			nb.loadCSVFile("data/body.csv");
 		} catch (IOException e) {
 			System.out.println("Urm, somfin went rong.");
 			e.printStackTrace();
