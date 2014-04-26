@@ -9,268 +9,232 @@ import java.util.Scanner;
 
 /**
  * 
- * @author cske2656
- * @author rbro5952
- *
+ * @author Craig Sketchley
+ * @author Rohan Brooker
+ * 
  */
 public class NaiveBayes {
-	ArrayList<Example> examples;
-	String [] featureHeaders;
-	// Double hashmap, keyed on feature name, then class type, to store the statistics.
-	HashMap<String, HashMap<String, FeatureStatistics>> featureStats;
-	// Keyed on the feature name.
-	HashMap<String, FeatureSet> featureSets;
-	ArrayList<String> classTypes;
-	
-	HashMap<String, Integer> classCounts;
-	int trainingSize;
-	
+	// Stores all the examples parsed when loading a csv file.
+	private ArrayList<Example> examples;
+
+	// Stores the Example's in groups according to class.
+	private HashMap<String, ArrayList<Example>> classExamples;
+
+	// Stores the names of all the features.
+	private String[] featureHeaders;
+	private int numOfFeatures;
+
+	// Double hashmap, keyed on feature name, then class type, to store the
+	// statistics.
+	private FeatureStatistics[] featureStats;
+
 	/**
-	 * 
+	 * Creates an instance of Naive Bayes.
 	 */
 	public NaiveBayes() {
-		classTypes = new ArrayList<String>();
-		classCounts = new HashMap<String, Integer>();
-		trainingSize = 0;
+		reset();
 	}
-	
-	
-	public void stratifiedCrossValidation(int kFold, File file) throws IOException {
-		
-		loadFile(file);
-		
-		HashMap<String, ArrayList<Example>> exampleClasses = new HashMap<String, ArrayList<Example>>();
-		
-		for (Example e : examples) {
-			if (!exampleClasses.containsKey(e.classType)) {
-				exampleClasses.put(e.classType, new ArrayList<Example>());
-			}
-			exampleClasses.get(e.classType).add(e);
-		}
-				
-		HashMap<String, Integer> classTypeProportion = new HashMap<String, Integer>();
-		
-		for (String classType : exampleClasses.keySet()) {
-			classTypeProportion.put(classType, exampleClasses.get(classType).size() / kFold);
-		}
 
-		ArrayList<ArrayList<Example>> strata = new ArrayList<ArrayList<Example>>();
+	/**
+	 * Wipes this instance of naive bayes, ready to load new training data.
+	 */
+	public void reset() {
+		examples = new ArrayList<Example>();
+		classExamples = new HashMap<String, ArrayList<Example>>();
+		numOfFeatures = 0;
+		featureHeaders = null;
+	}
+
+	/**
+	 * Returns the names of all the class types in the training data.
+	 * 
+	 * @return
+	 */
+	private Iterable<String> classNames() {
+		if (classExamples != null) {
+			return classExamples.keySet();
+		}
+		return null;
+	}
+
+	/**
+	 * 
+	 * @param kFold
+	 */
+	public void stratifiedCrossValidation(int kFold) {
+
+		HashMap<String, Integer> classTypeProportion = new HashMap<String, Integer>();
+		HashMap<String, Integer> classExamplesIndex = new HashMap<String, Integer>();
+
+		for (String className : classNames()) {
+			classTypeProportion.put(className, classExamples.get(className)
+					.size() / kFold);
+			classExamplesIndex.put(className, 0);
+		}
 		
+		ArrayList<ArrayList<Example>> strata = new ArrayList<ArrayList<Example>>();
+
 		for (int i = 0; i < kFold; i++) {
 			strata.add(new ArrayList<Example>());
-			for (String classType : classTypeProportion.keySet()) {
-				for (int j = 0; j < classTypeProportion.get(classType); j++) { // TODO: it works, but maybe use a stack/queue.
-					strata.get(i).add(exampleClasses.get(classType).remove(exampleClasses.get(classType).size() - 1));
+			for (String className : classNames()) {
+				for (int j = 0; j < classTypeProportion.get(className); j++) {
+					strata.get(i).add(classExamples.get(className).get(classExamplesIndex.get(className)));
+					classExamplesIndex.put(className, classExamplesIndex.get(className) + 1);
 				}
 			}
 		}
-		
-		// TODO: Temp code to divide up the remaining examples... can it be improved?
-		int i = 0;
-		
-		for (String classType : exampleClasses.keySet()) {
-			for (Example e : exampleClasses.get(classType)) {
-				strata.get(i).add(e);
-				i = ++i % kFold;
+
+		// TODO: Temp code to divide up the remaining examples... can it be
+		// improved?
+		// Currently sharing the remaining examples of each class amongst the folds.
+		int strataIndex = 0;
+		for (String className : classNames()) {
+			for (int i = classExamplesIndex.get(className); i < classExamples.get(className).size(); i++) {
+				strata.get(strataIndex).add(classExamples.get(className).get(i));
+				strataIndex = ++strataIndex % kFold;
 			}
 		}
-		
-		
-		
-		double [] accuracy = new double[kFold];
+
+		double[] accuracy = new double[kFold];
+
+		HashMap<String, ArrayList<Example>> classExamplesBackup = classExamples;
 		
 		// For each strata, run the naive bayes on all other strata.
-		for (i = 0; i < kFold; i++) {
+		for (int i = 0; i < kFold; i++) {
 			ArrayList<Example> testSet = strata.get(i);
-			examples = new ArrayList<Example>();
 			
+			// Create a new classExamples from the other strata.
+			classExamples = new HashMap<String, ArrayList<Example>>();
+
+			// Every other strata...
 			for (int j = 0; j < kFold; j++) {
 				if (i == j) {
 					continue;
 				}
-				examples.addAll(strata.get(j));	
+				for (Example e : strata.get(j)) {
+					if (!classExamples.containsKey(e.getClassName())) {
+						classExamples.put(e.getClassName(), new ArrayList<Example>());
+					}
+					classExamples.get(e.getClassName()).add(e);
+				}
 			}
-			
+
 			// Run naive bayes.
-			makeFeatureSets();
-			
 			train();
-			
-			System.out.println("Using strata " + (i+1) + " as test data.");
-			accuracy[i] = getAccuracy(testSet);
+
+			accuracy[i] = getClassificationAccuracy(testSet);
 		}
-		
+
 		double total = 0;
-		
+
 		System.out.println(kFold + "-fold Stratified Cross Validation:");
-		for (i = 0; i < accuracy.length; i++) {
-			System.out.println("Run " + (i+1) + ": " + accuracy[i]);
+		for (int i = 0; i < accuracy.length; i++) {
+			System.out.println("Run " + (i + 1) + ": " + accuracy[i]);
 			total += accuracy[i];
 		}
-		
+
 		System.out.println("Average for all Runs: " + (total / kFold));
+		
+		// Set classExamples back to normal.
+		classExamples = classExamplesBackup;
 	}
-	
-	
-	public double getAccuracy(ArrayList<Example> testSet) {
-		
+
+	private double getClassificationAccuracy(ArrayList<Example> testSet) {
 		int correctClassifyCount = 0;
-		
+
 		for (Example e : testSet) {
-			System.out.println("Classified: " + e);
 			String classification = classify(e);
-			System.out.println(classification);
-			if (e.classType.equals(classification)) {
+			if (e.getClassName().equals(classification)) {
 				correctClassifyCount++;
 			}
 		}
-		
+
 		return correctClassifyCount / (double) testSet.size();
 	}
-	
 
-	public String classify(Example input) {
-		HashMap<String, Double> probabilities = new HashMap<String, Double>();
-		
-		for (String classType : classTypes) {
-			double logProb = Math.log(probabilityOfClass(classType));
-			int i = 0;			
-			for (String featureName : featureStats.keySet()) {
-				FeatureStatistics fs = featureStats.get(featureName).get(classType);
-				double x = input.getValues().get(i);
-				double prob = fs.calculateLogProbability(x);
-				logProb += prob;
-				i++;
-			}
-			probabilities.put(classType, logProb);
-		}
-		
+	/**
+	 * Returns the best classification of the example input.
+	 * 
+	 * @param input
+	 * @return
+	 */
+	private String classify(Example input) {
 		double maxProb = Double.NEGATIVE_INFINITY;
 		String classifiedType = "UNCLASSIFIED";
 		
-		System.out.println("Probabilities:");
-		for (String classType : probabilities.keySet()) {
-			System.out.println(classType + " " + probabilities.get(classType));
-			if (probabilities.get(classType) > maxProb) {
-				maxProb = probabilities.get(classType);
-				classifiedType = classType;
+		for (String className : classNames()) {
+			double logProb = 0;
+			for (int i = 0; i < numOfFeatures; i++) {
+				logProb += featureStats[i].calculateLogProbabilityForClass(className, input.getValue(i));
+			}
+			logProb += probabilityOfClass(className);
+			if (logProb > maxProb) {
+				maxProb = logProb;
+				classifiedType = className;
 			}
 		}
-		
+
 		return classifiedType;
 	}
 	
-	
-	public double probabilityOfClass(String classType) {
-		return classCounts.get(classType) / (double) trainingSize;
+	private double probabilityOfClass(String className) {
+		return classExamples.get(className).size() / (double) examples.size();
 	}
-	
-	
-	/**
-	 * Loads a file in CSV format into the featureSets property.
-	 * 
-	 * @param file
-	 * @throws IOException
-	 */
-	public void loadData(File file) throws IOException {
-		// Check if data has been loaded before, wipe it if so.
-		loadFile(file);
-		
-		makeFeatureSets();
-		
-		train();
-	}
-	
+
 	/**
 	 * 
+	 * Loads the input csv file into the ArrayList examples and classIndices.
+	 * Assumes the file is a csv in the following format:
+	 * 
+	 * f1,f2,f3,...,f199,f200,class
+	 * 
 	 * @param file
+	 *            In CSV format.
 	 * @throws IOException
 	 */
-	private void loadFile(File file) throws IOException {
-		examples = new ArrayList<Example>();
-		
-		Scanner content = new Scanner(new FileReader(file));
-		
+	public void loadCSVFile(String filename) throws IOException {
+		// TODO: Could potentially add the ability to load multiple files
+		// without wiping content.
+
+		Scanner content = new Scanner(new FileReader(new File(filename)));
+		String[] line;
+		String classType;
+
 		// Use the header line to get the feature size and names.
 		featureHeaders = content.nextLine().split(",");
-		int featureSize = featureHeaders.length - 1;
+
+		numOfFeatures = featureHeaders.length - 1;
 
 		// All other lines
 		while (content.hasNextLine()) {
-			String [] line = content.nextLine().split(",");
-			String classType = line[line.length - 1];
-			
-			if (!classTypes.contains(classType)) {
-				classTypes.add(classType);
-			}
-			
-			Example e = new Example(classType);
-			for (int i = 0; i < featureSize; ++i) {
-				e.add(Double.parseDouble(line[i]));
+			line = content.nextLine().split(",");
+			classType = line[line.length - 1];
+
+			// Create a new example and add it to the examples.
+			Example e = new Example(classType, numOfFeatures);
+			for (int i = 0; i < numOfFeatures; ++i) {
+				e.add(i, Double.parseDouble(line[i]));
 			}
 			examples.add(e);
+
+			// Add this example to the array of its class type.
+			if (!classExamples.containsKey(classType)) {
+				classExamples.put(classType, new ArrayList<Example>());
+			}
+			classExamples.get(classType).add(e);
 		}
-		
+
 		content.close();
 	}
-	
-	/**
-	 * 
-	 */
-	private void makeFeatureSets() {
-		if (examples == null) {
-			return;
-		}
-		
-		featureSets = new HashMap<String, FeatureSet>();
 
-		int featureSize = featureHeaders.length - 1;
-		
-		for (int i = 0; i < featureSize; i++) {
-			featureSets.put(featureHeaders[i], new FeatureSet());
-		}
-		
-		// All other lines
-		for (Example e : examples) {
-			for (int i = 0; i < featureSize; ++i) {
-				featureSets.get(featureHeaders[i]).add(e.classType, e.getValues().get(i));
-				
-				// Compute the class count...
-				if (!classCounts.containsKey(e.classType)) {
-					classCounts.put(e.classType, 0);
-				}
-				classCounts.put(e.classType, classCounts.get(e.classType) + 1);
-			}
-		}
-		
-		trainingSize = featureSets.size();
-	}
-	
-	
 	/**
-	 * Processes the featureSets property into statistics ready to be used.
+	 * Calculates the statistics required for classification using the examples
+	 * ArrayList and classIndices. Once completed, this Naive Bayes will be
+	 * ready to begin classification of new data. Note: should only be called
+	 * after data has been loaded.
 	 */
-	private void train() {
-		if (featureSets == null) {
-			return;
-		}
-		
-		featureStats = new HashMap<String, HashMap<String, FeatureStatistics>>();
-		
-		// Iterate over the featureSets, getting the featureStats for each
-		for (String featureName : featureSets.keySet()) {
-			featureStats.put(featureName, featureSets.get(featureName).getFeatureStatistics());
-		}
-		
-		
-		for (String featureName : featureStats.keySet()) {
-			System.out.println("Feature type: " + featureName);
-			for (String classType : featureStats.get(featureName).keySet()) {
-				System.out.println("\tClasstype: " + classType);
-				System.out.println("\t\tmean: " + featureStats.get(featureName).get(classType).getMean());
-				System.out.println("\t\tstdv: " + featureStats.get(featureName).get(classType).getStdDv());
-			}
-		}
+	public void train() {
+		featureStats = FeatureStatistics.generateFeatureStatisticsArray(numOfFeatures, classExamples);
 	}
-	
+
 }

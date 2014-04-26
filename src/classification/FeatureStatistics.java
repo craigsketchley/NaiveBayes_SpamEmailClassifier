@@ -1,57 +1,116 @@
 package classification;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
- * FeatureStatistics is used to hold the statistics and calculate probabilities from a given feature set.
+ * FeatureStatistics is used to hold the statistics for each class for a
+ * specific feature.
  * 
- * @author cske2656
- * @author rbro5952
- *
+ * @author Craig Sketchley
+ * @author Rohan Brooker
+ * 
  */
 public class FeatureStatistics {
-	private double mean;
-	private double stddv;
-	private final double EXPONENT_DIVISOR;
-	private final double DIVISOR;
+	// The probability density functions for each class, keyed on the class
+	// names.
+	private HashMap<String, ProbabilityDensityFunction> classProbabilityFunctions;
 	
 	/**
-	 * Creates an object to hold the statistics for a given Feature set.
-	 * 
-	 * @param mean		the mean of the feature set
-	 * @param stddv		the standard deviation of the feature set
+	 * Creates a FeatureStatistics instance.
 	 */
-	public FeatureStatistics(double mean, double stddv) {
-		this.mean = mean;
-		this.stddv = stddv;
-		this.EXPONENT_DIVISOR = 1.0 / (-2 * stddv * stddv);
-		this.DIVISOR = 1.0 / (stddv * Math.sqrt(2 * Math.PI));
+	private FeatureStatistics() {
+		classProbabilityFunctions = new HashMap<String, ProbabilityDensityFunction>();
+	}
+	
+	private void addClassStatistics(String className, double mean, double stddv, int count) {
+		classProbabilityFunctions.put(className, new ProbabilityDensityFunction(mean, stddv));
+	}
+
+	/**
+	 * Returns the probability of obtaining the value for this feature of a
+	 * given class. Note: Should not be used in the Naive Bayes algorithm since
+	 * the probabilities can be very small which may lead to underflow errors,
+	 * use calculateLogProbabilityForClass() instead.
+	 * 
+	 * @param value
+	 *            the value for which the probability is required
+	 * @param className
+	 *            the name of the class the probability is required.
+	 * @return the probability
+	 */
+	public double calculateProbabilityForClass(double value, String className) {
+		return classProbabilityFunctions.get(className).calculateProbability(
+				value);
+	}
+
+	/**
+	 * Returns the logarithm of the probability of obtaining the value for this
+	 * feature of a given class.
+	 * 
+	 * @param value
+	 *            the value for which the probability is required
+	 * @param className
+	 *            the name of the class the probability is required.
+	 * @return the probability
+	 */
+	public double calculateLogProbabilityForClass(String className, double value) {
+		return classProbabilityFunctions.get(className)
+				.calculateLogProbability(value);
 	}
 	
 	/**
-	 * Returns the probability of obtaining the value for the given feature.
+	 * Returns a String representation of this Object.
 	 * 
-	 * @param value		the value for which the probability is required
-	 * @return 			the probability
+	 * @return	the Object as a String
 	 */
-	public double calculateProbability(double value) {
-		return DIVISOR * Math.exp( (value - mean) * (value - mean) * EXPONENT_DIVISOR );
+	public String toString() {
+		String output = "{";
+		
+		for (String className : classProbabilityFunctions.keySet()) {
+			output += className + " : [mean=";
+			output += classProbabilityFunctions.get(className).getMean() + ", stdDev=";
+			output += classProbabilityFunctions.get(className).getStandardDeviation() + "],";
+		}
+		
+		return output.substring(0, output.length() - 1) + "}";
 	}
-	
+		
 	/**
-	 * Returns the log of the probability of obtaining the value for the given feature.
+	 * Static method to create the array of FeatureStatistics given the examples.
 	 * 
-	 * @param value		the value for which the probability is required
-	 * @return			the log of the probability
+	 * Can only create feature statistics this way.
+	 * 
+	 * @param examples
+	 * @param classIndices
+	 * @return
 	 */
-	public double calculateLogProbability(double value) {
-		return Math.log(DIVISOR) + (value - mean) * (value - mean) * EXPONENT_DIVISOR;
+	public static FeatureStatistics[] generateFeatureStatisticsArray(int numberOfFeatures, HashMap<String,ArrayList<Example>> classExamples) {
+		FeatureStatistics[] output = new FeatureStatistics[numberOfFeatures];
+		
+		for (int featureIndex = 0; featureIndex < numberOfFeatures; featureIndex++) {
+			output[featureIndex] = new FeatureStatistics(); 
+			for (String className : classExamples.keySet()) {
+				// calculate the mean/stdv of each class within the feature.
+				double sum = 0;
+				double sqrdSum = 0;
+				int count = 0;
+								
+				for (Example example : classExamples.get(className)) {
+					double val = example.getValue(featureIndex);
+					sum += val;
+					sqrdSum += val*val;
+					count++;
+				}
+				
+				double mean = sum /count;
+				double stddv = sqrdSum / count - mean * mean;
+				
+				output[featureIndex].addClassStatistics(className, mean, stddv, count);
+			}
+		}
+		
+		return output;
 	}
-	
-	public double getMean() {
-		return this.mean;
-	}
-	
-	public double getStdDv() {
-		return this.stddv;
-	}
-	
+
 }

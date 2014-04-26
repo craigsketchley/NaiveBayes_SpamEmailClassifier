@@ -1,4 +1,5 @@
 package datapreparation;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -6,10 +7,9 @@ import java.util.ArrayList;
 public class TextClassifier {
 	public static final int FEATURE_SIZE = 200;
 	
-	
 	public static void main(String[] args) {
 		File email = new File("lingspam-mini600");
-		File stopWords = new File("english.stop");
+		File stopWords = new File("data/english.stop");
 
 		Preprocessor pro = null;
 		

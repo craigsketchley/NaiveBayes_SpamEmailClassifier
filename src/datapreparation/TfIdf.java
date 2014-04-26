@@ -1,10 +1,10 @@
 package datapreparation;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-
 
 public abstract class TfIdf {
 
@@ -15,7 +15,7 @@ public abstract class TfIdf {
 	
 	public static void outputSubjectCsv(Word[] words, ArrayList<Document> docs) throws IOException {
 		
-		File output = new File("subject.csv");
+		File output = new File("data/subject.csv");
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(output));
 		
@@ -52,7 +52,7 @@ public abstract class TfIdf {
 	
 	public static void outputBodyCsv(Word[] words, ArrayList<Document> docs) throws IOException {
 		
-		File output = new File("body.csv");
+		File output = new File("data/body.csv");
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(output));
 		
