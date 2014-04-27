@@ -1,10 +1,15 @@
 package classification;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -25,7 +30,7 @@ public class NaiveBayes {
 	private int numOfFeatures;
 
 	private String inputFilename;
-	
+
 	// Double hashmap, keyed on feature name, then class type, to store the
 	// statistics.
 	private FeatureStatistics[] featureStats;
@@ -74,7 +79,7 @@ public class NaiveBayes {
 					.size() / kFold);
 			classExamplesIndex.put(className, 0);
 		}
-		
+
 		ArrayList<ArrayList<Example>> strata = new ArrayList<ArrayList<Example>>();
 
 		for (int i = 0; i < kFold; i++) {
@@ -98,18 +103,21 @@ public class NaiveBayes {
 			}
 		}
 
-		// TODO: Output the stratification to a CSV file.
+		//File name output and map to store each fold
 		String outputFilename = inputFilename.substring(0, inputFilename.length() - 4) + "-folds.csv";
-		
-		
+		LinkedHashMap<String, HashMap<String, ArrayList<Example>>> foldSet = 
+				new LinkedHashMap<String, HashMap<String, ArrayList<Example>>>();
+
+
 		double[] accuracy = new double[kFold];
 
 		HashMap<String, ArrayList<Example>> classExamplesBackup = classExamples;
-		
+		String foldHeader;
+
 		// For each strata, run the naive bayes on all other strata.
 		for (int i = 0; i < kFold; i++) {
 			ArrayList<Example> testSet = strata.get(i);
-			
+
 			// Create a new classExamples from the other strata.
 			classExamples = new HashMap<String, ArrayList<Example>>();
 
@@ -126,12 +134,17 @@ public class NaiveBayes {
 				}
 			}
 
+			//Add selected strata for this fold to map
+			foldHeader = "fold" + (i+1);
+			foldSet.put(foldHeader, classExamples);
+
+
 			// Run naive bayes.
 			train();
 
 			accuracy[i] = getClassificationAccuracy(testSet);
 		}
-
+		outputToCSV(outputFilename, foldSet);
 		double total = 0;
 
 		System.out.println(kFold + "-fold Stratified Cross Validation:");
@@ -141,7 +154,7 @@ public class NaiveBayes {
 		}
 
 		System.out.println("Average for all Runs: " + (total / kFold));
-		
+
 		// Set classExamples back to normal.
 		classExamples = classExamplesBackup;
 	}
@@ -172,13 +185,13 @@ public class NaiveBayes {
 	 */
 	private String classify(Example input) {
 		// TODO: How to break ties.
-		
+
 		double maxProb = Double.NEGATIVE_INFINITY;
 		String classifiedType = "UNCLASSIFIED";
-		
+
 		double logProb;
 		double totalLogProb;
-		
+
 		for (String className : classNames()) {
 			totalLogProb = 0;
 			for (int i = 0; i < numOfFeatures; i++) {
@@ -198,7 +211,7 @@ public class NaiveBayes {
 
 		return classifiedType;
 	}
-	
+
 	/**
 	 * Calculates and returns the probability of an example being a given class type
 	 * based on the proportions of the training data.
@@ -223,9 +236,9 @@ public class NaiveBayes {
 	 */
 	public void loadCSVFile(String filename) throws IOException {
 		reset(); // Ensure a clean Naive Bayes.
-		
+
 		inputFilename = filename;
-		
+
 		Scanner content = new Scanner(new FileReader(new File(filename)));
 		String[] line;
 		String classType;
@@ -265,6 +278,43 @@ public class NaiveBayes {
 	 */
 	public void train() {
 		featureStats = FeatureStatistics.generateFeatureStatisticsArray(numOfFeatures, classExamples);
+	}
+
+	/**
+	 * 
+	 * Output each fold breakdown to a single CSV file
+	 * 
+	 */
+	public void outputToCSV(String fileName, LinkedHashMap<String, HashMap<String, ArrayList<Example>>> foldSet){
+
+		File output = new File(fileName);
+		BufferedWriter writer;
+		double value = 0;
+		try{
+
+			writer = new BufferedWriter(new FileWriter(output));
+
+			for(String fold: foldSet.keySet()){
+				writer.write(fold);
+				writer.newLine();
+
+				for(String classType : foldSet.get(fold).keySet()){
+					for(int i = 0; i < foldSet.get(fold).get(classType).size(); i++){
+						for(int j = 0; j < foldSet.get(fold).get(classType).get(i).getNumberOfValues(); j++){
+							value = foldSet.get(fold).get(classType).get(i).getValue(j);
+							writer.write(String.valueOf(value) + ",");
+						}
+						writer.write(classType);
+						writer.newLine();
+					}
+				}
+				writer.newLine();
+			}
+			writer.close();
+		}catch (IOException o){
+			System.out.println("Error writing to " + fileName + " " + o.toString());
+			return;
+		}
 	}
 
 }
