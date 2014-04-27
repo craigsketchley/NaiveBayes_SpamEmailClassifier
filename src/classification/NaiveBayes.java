@@ -24,6 +24,8 @@ public class NaiveBayes {
 	private String[] featureHeaders;
 	private int numOfFeatures;
 
+	private String inputFilename;
+	
 	// Double hashmap, keyed on feature name, then class type, to store the
 	// statistics.
 	private FeatureStatistics[] featureStats;
@@ -43,6 +45,8 @@ public class NaiveBayes {
 		classExamples = new HashMap<String, ArrayList<Example>>();
 		numOfFeatures = 0;
 		featureHeaders = null;
+		featureStats = null;
+		inputFilename = null;
 	}
 
 	/**
@@ -62,7 +66,6 @@ public class NaiveBayes {
 	 * @param kFold
 	 */
 	public void stratifiedCrossValidation(int kFold) {
-
 		HashMap<String, Integer> classTypeProportion = new HashMap<String, Integer>();
 		HashMap<String, Integer> classExamplesIndex = new HashMap<String, Integer>();
 
@@ -95,6 +98,10 @@ public class NaiveBayes {
 			}
 		}
 
+		// TODO: Output the stratification to a CSV file.
+		String outputFilename = inputFilename.substring(0, inputFilename.length() - 4) + "-folds.csv";
+		
+		
 		double[] accuracy = new double[kFold];
 
 		HashMap<String, ArrayList<Example>> classExamplesBackup = classExamples;
@@ -139,6 +146,11 @@ public class NaiveBayes {
 		classExamples = classExamplesBackup;
 	}
 
+	/**
+	 * 
+	 * @param testSet
+	 * @return
+	 */
 	private double getClassificationAccuracy(ArrayList<Example> testSet) {
 		int correctClassifyCount = 0;
 
@@ -159,17 +171,27 @@ public class NaiveBayes {
 	 * @return
 	 */
 	private String classify(Example input) {
+		// TODO: How to break ties.
+		
 		double maxProb = Double.NEGATIVE_INFINITY;
 		String classifiedType = "UNCLASSIFIED";
 		
+		double logProb;
+		double totalLogProb;
+		
 		for (String className : classNames()) {
-			double logProb = 0;
+			totalLogProb = 0;
 			for (int i = 0; i < numOfFeatures; i++) {
-				logProb += featureStats[i].calculateLogProbabilityForClass(className, input.getValue(i));
+				logProb = featureStats[i].calculateLogProbabilityForClass(className, input.getValue(i));
+				if ((new Double(logProb)).equals(Double.NaN)) {
+					// TODO: Skipping values with zero variance. Could do this some other way.
+					continue;
+				}
+				totalLogProb += logProb;
 			}
-			logProb += probabilityOfClass(className);
-			if (logProb > maxProb) {
-				maxProb = logProb;
+			totalLogProb += probabilityOfClass(className);
+			if (totalLogProb > maxProb) {
+				maxProb = totalLogProb;
 				classifiedType = className;
 			}
 		}
@@ -177,6 +199,13 @@ public class NaiveBayes {
 		return classifiedType;
 	}
 	
+	/**
+	 * Calculates and returns the probability of an example being a given class type
+	 * based on the proportions of the training data.
+	 * 
+	 * @param className	the name of the class to calculate the probability
+	 * @return	the probability
+	 */
 	private double probabilityOfClass(String className) {
 		return classExamples.get(className).size() / (double) examples.size();
 	}
@@ -193,9 +222,10 @@ public class NaiveBayes {
 	 * @throws IOException
 	 */
 	public void loadCSVFile(String filename) throws IOException {
-		// TODO: Could potentially add the ability to load multiple files
-		// without wiping content.
-
+		reset(); // Ensure a clean Naive Bayes.
+		
+		inputFilename = filename;
+		
 		Scanner content = new Scanner(new FileReader(new File(filename)));
 		String[] line;
 		String classType;
