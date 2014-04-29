@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -105,9 +104,6 @@ public class NaiveBayes {
 
 		//File name output and map to store each fold
 		String outputFilename = inputFilename.substring(0, inputFilename.length() - 4) + "-folds.csv";
-		LinkedHashMap<String, HashMap<String, ArrayList<Example>>> foldSet = 
-				new LinkedHashMap<String, HashMap<String, ArrayList<Example>>>();
-
 
 		double[] accuracy = new double[kFold];
 
@@ -134,17 +130,13 @@ public class NaiveBayes {
 				}
 			}
 
-			//Add selected strata for this fold to map
-			foldHeader = "fold" + (i+1);
-			foldSet.put(foldHeader, classExamples);
-
-
 			// Run naive bayes.
 			train();
 
 			accuracy[i] = getClassificationAccuracy(testSet);
 		}
-		outputToCSV(outputFilename, foldSet);
+		//Output the folds to a CSV file
+		outputToCSV(strata, kFold, outputFilename);
 		double total = 0;
 
 		System.out.println(kFold + "-fold Stratified Cross Validation:");
@@ -285,36 +277,32 @@ public class NaiveBayes {
 	 * Output each fold breakdown to a single CSV file
 	 * 
 	 */
-	public void outputToCSV(String fileName, LinkedHashMap<String, HashMap<String, ArrayList<Example>>> foldSet){
+	private void outputToCSV(ArrayList<ArrayList<Example>> strata, int kFold, String fileName){
 
 		File output = new File(fileName);
 		BufferedWriter writer;
 		double value = 0;
-		try{
 
+		try {
 			writer = new BufferedWriter(new FileWriter(output));
 
-			for(String fold: foldSet.keySet()){
-				writer.write(fold);
+			for (int i = 0; i < kFold; i++) {
+				writer.write("fold" + (i+1));
 				writer.newLine();
-
-				for(String classType : foldSet.get(fold).keySet()){
-					for(int i = 0; i < foldSet.get(fold).get(classType).size(); i++){
-						for(int j = 0; j < foldSet.get(fold).get(classType).get(i).getNumberOfValues(); j++){
-							value = foldSet.get(fold).get(classType).get(i).getValue(j);
-							writer.write(String.valueOf(value) + ",");
-						}
-						writer.write(classType);
-						writer.newLine();
+				for (Example e : strata.get(i)) {
+					for(int j = 0; j < e.getNumberOfValues(); j++){
+						value = e.getValue(j);
+						writer.write(String.valueOf(value) + ",");
 					}
+					writer.write(e.getClassName());
+					writer.newLine();
 				}
 				writer.newLine();
 			}
 			writer.close();
-		}catch (IOException o){
+		} catch (IOException o) {
 			System.out.println("Error writing to " + fileName + " " + o.toString());
 			return;
 		}
 	}
-
 }
