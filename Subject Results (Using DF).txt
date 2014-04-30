@@ -1410,3 +1410,83 @@ Weighted Avg.    0.698     0.603      0.792     0.698     0.602      0.548
  400   0 |   a = class0
  181  19 |   b = class1
 
+=== Run information ===
+
+Scheme:weka.classifiers.trees.J48 -C 0.25 -M 2
+Relation:     subject
+Instances:    600
+Attributes:   201
+[list of attributes omitted]
+Test mode:10-fold cross-validation
+
+=== Classifier model (full training set) ===
+
+J48 pruned tree
+------------------
+: class0 (600.0/200.0)
+
+Number of Leaves  : 	1
+
+Size of the tree : 	1
+
+
+Time taken to build model: 0.03 seconds
+
+=== Stratified cross-validation ===
+=== Summary ===
+
+Correctly Classified Instances         400               66.6667 %
+Incorrectly Classified Instances       200               33.3333 %
+Kappa statistic                          0     
+Mean absolute error                      0.4444
+Root mean squared error                  0.4714
+Relative absolute error                 99.9539 %
+Root relative squared error             99.9999 %
+Total Number of Instances              600     
+
+=== Detailed Accuracy By Class ===
+
+               TP Rate   FP Rate   Precision   Recall  F-Measure   ROC Area  Class
+                 1         1          0.667     1         0.8        0.5      class0
+                 0         0          0         0         0          0.5      class1
+Weighted Avg.    0.667     0.667      0.444     0.667     0.533      0.5  
+
+=== Confusion Matrix ===
+
+   a   b   <-- classified as
+ 400   0 |   a = class0
+ 200   0 |   b = class1
+
+=== Run information ===
+
+Scheme:weka.classifiers.functions.MultilayerPerceptron -L 0.3 -M 0.2 -N 500 -V 0 -S 0 -E 20 -H a
+Relation:     subject
+Instances:    600
+Attributes:   201
+[list of attributes omitted]
+Test mode:10-fold cross-validation
+
+=== Stratified cross-validation ===
+=== Summary ===
+
+Correctly Classified Instances         447               74.5    %
+Incorrectly Classified Instances       153               25.5    %
+Kappa statistic                          0.4694
+Mean absolute error                      0.278 
+Root mean squared error                  0.406 
+Relative absolute error                 62.5194 %
+Root relative squared error             86.1261 %
+Total Number of Instances              600     
+
+=== Detailed Accuracy By Class ===
+
+               TP Rate   FP Rate   Precision   Recall  F-Measure   ROC Area  Class
+                 0.728     0.22       0.869     0.728     0.792      0.853    class0
+                 0.78      0.273      0.589     0.78      0.671      0.853    class1
+Weighted Avg.    0.745     0.238      0.775     0.745     0.752      0.853
+
+=== Confusion Matrix ===
+
+   a   b   <-- classified as
+ 291 109 |   a = class0
+  44 156 |   b = class1
