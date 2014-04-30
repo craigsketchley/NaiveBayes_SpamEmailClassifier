@@ -7,8 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -91,8 +89,7 @@ public class NaiveBayes {
 			}
 		}
 
-		// TODO: Temp code to divide up the remaining examples... can it be
-		// improved?
+		// TODO: Divide up the remaining examples... can it be improved?
 		// Currently sharing the remaining examples of each class amongst the folds.
 		int strataIndex = 0;
 		for (String className : classNames()) {
@@ -108,7 +105,6 @@ public class NaiveBayes {
 		double[] accuracy = new double[kFold];
 
 		HashMap<String, ArrayList<Example>> classExamplesBackup = classExamples;
-		String foldHeader;
 
 		// For each strata, run the naive bayes on all other strata.
 		for (int i = 0; i < kFold; i++) {

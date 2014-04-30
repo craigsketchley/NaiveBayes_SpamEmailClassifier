@@ -11,7 +11,7 @@ public class CosineNormalisation implements Normalisable {
 				mag += inputVectors[vecIndex][i] * inputVectors[vecIndex][i];
 			}
 			mag = Math.sqrt(mag);
-			
+
 			for (int i = 0; i < inputVectors[vecIndex].length; i++) {
 				double normVal = (mag != 0) ? inputVectors[vecIndex][i] / mag : 0;
 				inputVectors[vecIndex][i] = normVal;

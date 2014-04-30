@@ -1,6 +1,6 @@
 
 
-import datapreparation.EmailProcessor;
+import dataPreparation.EmailProcessor;
 import normalisation.NormalisationType;
 import featureSelection.FeatureSelectionType;
 
@@ -9,7 +9,7 @@ public class EmailProcessorExample {
 	
 	public static void main(String[] args) {
 		String emailFolder = "lingspam-mini600";
-		String stopWordsFilename = "data/english.stop";
+		String stopWordsFilename = "data/english-edit.stop";
 		
 		EmailProcessor ep = new EmailProcessor(emailFolder,
 				 stopWordsFilename,

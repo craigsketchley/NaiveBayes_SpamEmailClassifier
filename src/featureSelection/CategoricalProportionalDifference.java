@@ -1,12 +1,16 @@
 package featureSelection;
 
-import datapreparation.Word;
+import dataPreparation.Word;
 
 public class CategoricalProportionalDifference implements FeatureScoreable {
 
-	public double compute(int wordSpamCount, int wordHamCount, int spamCount,
-			int hamCount) {
-		return (wordSpamCount - wordHamCount) / (double) (wordSpamCount + wordHamCount);
+	private double compute(int wordSpamCount, int wordHamCount, int spamCount, int hamCount) {
+		double denom = wordHamCount + wordSpamCount;
+		
+		double spamScore = (wordSpamCount - wordHamCount) / denom;
+		double hamScore = (wordHamCount - wordSpamCount) / denom;
+		
+		return Math.max(spamScore, hamScore);
 	}
 
 	@Override

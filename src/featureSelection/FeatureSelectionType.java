@@ -6,6 +6,7 @@ public enum FeatureSelectionType {
 	MUTUAL_INFORMATION,
 	ODDS_RATIO,
 	CHI_SQRD,
+	SIMPLIFIED_CHI_SQRD,
 	CPD;
 	
 	
@@ -27,6 +28,9 @@ public enum FeatureSelectionType {
 			break;
 		case CHI_SQRD:
 			output = new ChiSqrd();
+			break;
+		case SIMPLIFIED_CHI_SQRD:
+			output = new SimplifiedChiSqrd();
 			break;
 		case CPD:
 			output = new CategoricalProportionalDifference();

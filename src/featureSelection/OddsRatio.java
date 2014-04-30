@@ -1,6 +1,6 @@
 package featureSelection;
 
-import datapreparation.Word;
+import dataPreparation.Word;
 
 public class OddsRatio implements FeatureScoreable {
 

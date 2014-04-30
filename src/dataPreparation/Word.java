@@ -1,4 +1,4 @@
-package datapreparation;
+package dataPreparation;
 
 public class Word implements Comparable<Word> {
 	private String word;
@@ -55,22 +55,22 @@ public class Word implements Comparable<Word> {
 	
 	@Override
 	public String toString() {
-		return word;
+		return word + " [fs = " + featureScore + ", df = " + getDocumentFrequency() + "]";
 	}
 
 	@Override
 	public int compareTo(Word o) {
 		// Order by featureScore
 		if (this.featureScore > o.featureScore) {
-			return -1;
-		} else if (this.featureScore < o.featureScore) {
 			return 1;
+		} else if (this.featureScore < o.featureScore) {
+			return -1;
 		} else {
 			// Break ties by opting for words with higher DocFreq
 			if (this.getDocumentFrequency() > o.getDocumentFrequency()) {
-				return -1;
-			} else if (this.getDocumentFrequency() < o.getDocumentFrequency()) {
 				return 1;
+			} else if (this.getDocumentFrequency() < o.getDocumentFrequency()) {
+				return -1;
 			} else {
 				// Finally, natural ordering...
 				return word.compareTo(o.word);

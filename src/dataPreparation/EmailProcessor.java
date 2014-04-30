@@ -1,10 +1,11 @@
-package datapreparation;
+package dataPreparation;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.Scanner;
@@ -18,22 +19,26 @@ public class EmailProcessor {
 	// Using a HashMap for stopWords, to quickly check if an input email word ==
 	// stop word.
 	private HashMap<String, Integer> stopWords;
-	private ArrayList<Document> docList;
-	private HashMap<String, Word> bodyBagOWords;
-	private HashMap<String, Word> subjectBagOWords;
+	
+	private ArrayList<Document> bodyDocList;
+	private HashMap<String, Word> bodyBagOfWords;
+	
+	private ArrayList<Document> subjectDocList;
+	private HashMap<String, Word> subjectBagOfWords;
 
 	private FeatureScoreable featureScore;
 	private Normalisable normalisation;
 
 	private int hamCount;
 	private int spamCount;
-
+	
 	// Class defaults
 	private static final FeatureSelectionType DEFAULT_FEATURE_SELECTION = FeatureSelectionType.DOCUMENT_FREQUENCY;
 	private static final NormalisationType DEFAULT_NORMALISATION = NormalisationType.COSINE_NORM;
 
 	private static final String BODY_FILENAME = "data/body.csv";
 	private static final String SUBJECT_FILENAME = "data/subject.csv";
+	private static final String SPAM_PREFIX = "spmsg";
 	
 	/**
 	 * 
@@ -47,11 +52,11 @@ public class EmailProcessor {
 			NormalisationType normalisationType) {
 		this.hamCount = 0;
 		this.spamCount = 0;
-		this.docList = new ArrayList<Document>();
-		this.bodyBagOWords = new HashMap<String, Word>();
-		this.subjectBagOWords = new HashMap<String, Word>();
+		this.subjectDocList = new ArrayList<Document>();
+		this.bodyDocList = new ArrayList<Document>();
+		this.bodyBagOfWords = new HashMap<String, Word>();
+		this.subjectBagOfWords = new HashMap<String, Word>();
 		this.stopWords = new HashMap<String, Integer>();
-
 
 		// Import the stopWords
 		if (stopwordsFilename != null) {
@@ -108,31 +113,32 @@ public class EmailProcessor {
 	/** PUBLIC METHODS **/
 
 	public void outputFeatureSelectionCSV(int K) {
-		if (docList == null || docList.size() == 0) {
+		if (bodyDocList == null || bodyDocList.size() == 0
+				|| subjectDocList == null || subjectDocList.size() == 0) {
 			// No documents loaded to process.
 			return;
 		}
 
 		// Selection, score each word using the given featureSelction
-		for (Word word : bodyBagOWords.values()) {
+		for (Word word : bodyBagOfWords.values()) {
 			featureScore.setFeatureScore(word, spamCount, hamCount);
 		}
-		for (Word word : subjectBagOWords.values()) {
+		for (Word word : subjectBagOfWords.values()) {
 			featureScore.setFeatureScore(word, spamCount, hamCount);
 		}
 
 		// Order the words, picking the top K words.
-		Word[] topBodyWords = getTopBodyWords(K);
-		Word[] topSubjectWords = getTopSubjectWords(K);
+		Word[] topBodyWords = getTopWords(K, bodyBagOfWords);
+		Word[] topSubjectWords = getTopWords(K, subjectBagOfWords);
 
 		// TODO: Print top 200 body words for debugging
 		for (Word w : topBodyWords) {
-			System.out.println(w + "[" + w.getFeatureScore() + "]");
+			System.out.println(w);
 		}
 		
 		// Apply TF*IDF to each word.
-		double[][] bodyWeightMatrix = calculateTfIdf(topBodyWords);
-		double[][] subjectWeightMatrix = calculateTfIdf(topSubjectWords);
+		double[][] bodyWeightMatrix = calculateTfIdf(topBodyWords, bodyDocList);
+		double[][] subjectWeightMatrix = calculateTfIdf(topSubjectWords, subjectDocList);
 
 		// Normalise in place
 		normalisation.normalise(bodyWeightMatrix);
@@ -140,8 +146,8 @@ public class EmailProcessor {
 		
 		// Output to CSV.
 		try {
-			outputToCSV(BODY_FILENAME, bodyWeightMatrix);
-			outputToCSV(SUBJECT_FILENAME, subjectWeightMatrix);
+			outputToCSV(BODY_FILENAME, bodyWeightMatrix, bodyDocList);
+			outputToCSV(SUBJECT_FILENAME, subjectWeightMatrix, subjectDocList);
 		} catch (IOException e) {
 			System.out.println("Had a bit of trouble outputing to the csv files. Here's the stack trace...");
 			e.printStackTrace();
@@ -156,15 +162,15 @@ public class EmailProcessor {
 	 * @param bodyWeightMatrix
 	 * @throws IOException 
 	 */
-	private void outputToCSV(String filename, double[][] weightMatrix) throws IOException {
+	private void outputToCSV(String filename, double[][] weightMatrix, ArrayList<Document> docList) throws IOException {
 		if (weightMatrix.length == 0) {
 			return;
 		}
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(new File(filename)));
 		
-		for (int i = 1; i <= weightMatrix[0].length; i++) {
-			writer.write("f" + i + ",");
+		for (int i = 0; i < weightMatrix[0].length; i++) {
+			writer.write("f" + (i+1) + ",");
 		}
 		writer.write("class");
 		writer.newLine();
@@ -183,23 +189,24 @@ public class EmailProcessor {
 	/**
 	 * Calculates the TF*IDF matrix for the top words and training email's.
 	 * 
-	 * @param topBodyWords
+	 * @param topWords
 	 * @return
 	 */
-	private double[][] calculateTfIdf(Word[] topBodyWords) {
-		double[][] output = new double[docList.size()][topBodyWords.length];
+	private double[][] calculateTfIdf(Word[] topWords, ArrayList<Document> docList) {
+		double[][] output = new double[docList.size()][topWords.length];
 
 		for (int docIndex = 0; docIndex < output.length; docIndex++) {
 			for (int wordIndex = 0; wordIndex < output[docIndex].length; wordIndex++) {
 				output[docIndex][wordIndex] = TfIdfFormula(
-						docList.get(docIndex).getBodyWordCount(topBodyWords[wordIndex].word()),
+						docList.get(docIndex).getWordCount(topWords[wordIndex].word()),
 						docList.size(),
-						topBodyWords[wordIndex].getDocumentFrequency());
+						topWords[wordIndex].getDocumentFrequency());
 			}
 		}
 
 		return output;
 	}
+	
 	
 	/**
 	 * TF*IDF Formula.
@@ -258,44 +265,20 @@ public class EmailProcessor {
 	/**
 	 * Returns the top K items from the bodyBagOfWords.
 	 * 
-	 * TODO: Code repetition with getTopSubjectWords
 	 * 
 	 * @param size
 	 * @return
 	 */
-	private Word[] getTopBodyWords(int size) {
-		PriorityQueue<Word> bodyWords = new PriorityQueue<Word>();
+	private Word[] getTopWords(int size, HashMap<String, Word> bagOfWords) {
+		PriorityQueue<Word> bodyWords = new PriorityQueue<Word>(bagOfWords.size(), Collections.reverseOrder());
 
 		// Words are Comparable so will be ordered.
-		bodyWords.addAll(bodyBagOWords.values());
+		bodyWords.addAll(bagOfWords.values());
 
 		Word[] output = new Word[size];
 
 		for (int i = 0; i < size; i++) {
 			output[i] = bodyWords.poll();
-		}
-
-		return output;
-	}
-
-	/**
-	 * Returns the top K items from the subjectBagOfWords.
-	 * 
-	 * TODO: Code repetition with getTopBodyWords
-	 * 
-	 * @param size
-	 * @return
-	 */
-	private Word[] getTopSubjectWords(int size) {
-		PriorityQueue<Word> subjectWords = new PriorityQueue<Word>();
-
-		// Words are Comparable so will be ordered.
-		subjectWords.addAll(subjectBagOWords.values());
-
-		Word[] output = new Word[size];
-
-		for (int i = 0; i < size; i++) {
-			output[i] = subjectWords.poll();
 		}
 
 		return output;
@@ -311,10 +294,12 @@ public class EmailProcessor {
 	 * @throws IOException
 	 */
 	private void addDocument(File file) throws IOException {
-		Document doc = new Document();
+		Document subjectDoc = new Document();
+		Document bodyDoc = new Document();
 
 		if (isSpam(file.getName())) {
-			doc.setSpam();
+			subjectDoc.setSpam();
+			bodyDoc.setSpam();
 			spamCount++;
 		} else {
 			hamCount++;
@@ -327,19 +312,19 @@ public class EmailProcessor {
 
 		for (int i = 1; i < subject.length; ++i) { // skip "Subject:" at i = 0
 			if (isValidWord(subject[i])) {
-				if (!doc.subjectHasWord(subject[i])) {
-					Word word = subjectBagOWords.get(subject[i]);
+				if (!subjectDoc.hasWord(subject[i])) {
+					Word word = subjectBagOfWords.get(subject[i]);
 					if (word == null) {
 						word = new Word(subject[i]);
-						subjectBagOWords.put(subject[i], word);
+						subjectBagOfWords.put(subject[i], word);
 					}
-					if (doc.isSpam()) {
+					if (subjectDoc.isSpam()) {
 						word.incrementSpamCount();
 					} else {
 						word.incrementHamCount();
 					}
 				}
-				doc.addToSubject(subject[i]);
+				subjectDoc.addToWords(subject[i]);
 			}
 		}
 
@@ -349,25 +334,27 @@ public class EmailProcessor {
 
 			for (int i = 0; i < bodyLine.length; ++i) {
 				if (isValidWord(bodyLine[i])) {
-					if (!doc.bodyHasWord(bodyLine[i])) {
-						Word word = bodyBagOWords.get(bodyLine[i]);
+					if (!bodyDoc.hasWord(bodyLine[i])) {
+						Word word = bodyBagOfWords.get(bodyLine[i]);
 						if (word == null) {
 							word = new Word(bodyLine[i]);
-							bodyBagOWords.put(bodyLine[i], word);
+							bodyBagOfWords.put(bodyLine[i], word);
 						}
-						if (doc.isSpam()) {
+						if (bodyDoc.isSpam()) {
 							word.incrementSpamCount();
 						} else {
 							word.incrementHamCount();
 						}
 					}
-					doc.addToBody(bodyLine[i]);
+					bodyDoc.addToWords(bodyLine[i]);
 				}
 			}
 		}
 
 		scnr.close();
-		docList.add(doc);
+		
+		subjectDocList.add(subjectDoc);
+		bodyDocList.add(bodyDoc);
 	}
 
 	/**
@@ -376,7 +363,7 @@ public class EmailProcessor {
 	 * @return
 	 */
 	private boolean isValidWord(String word) {
-		return !isAnyPunctuation(word) && !isNumber(word) && !isStopWord(word);
+		return word.length() != 0 && !isPunctuation(word) && !isNumber(word) && !isStopWord(word);
 	}
 
 	/**
@@ -390,7 +377,9 @@ public class EmailProcessor {
 	}
 
 	/**
-	 * Checks if the given string is a single punctuation character.
+	 * Checks if the given string contains any punctuation characters.
+	 * 
+	 * TODO: Decide if this is required.
 	 * 
 	 * @param input
 	 * @return
@@ -421,7 +410,9 @@ public class EmailProcessor {
 	}
 
 	/**
-	 * Return true if all of the characters in the provided string are digits.
+	 * Return true if any of the characters in the provided string are digits.
+	 * 
+	 * TODO: Decide if this is required.
 	 * 
 	 * @param input
 	 *            string to be checked if it is all digits
@@ -446,9 +437,14 @@ public class EmailProcessor {
 		return stopWords.containsKey(input);
 	}
 
+	/**
+	 * Checks if the filename indicates if the email is classed as Spam.
+	 * 
+	 * @param filename
+	 * @return
+	 */
 	private boolean isSpam(String filename) {
-		String spam = "spmsg"; // TODO: Make a constant.
-		return filename.substring(0, spam.length()).equals(spam);
+		return filename.substring(0, SPAM_PREFIX.length()).equals(SPAM_PREFIX);
 	}
 	
 }
