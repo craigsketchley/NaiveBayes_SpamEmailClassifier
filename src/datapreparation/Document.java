@@ -3,8 +3,8 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class Document {
-	public HashMap<String, Integer> subject;
-	public HashMap<String, Integer> body;
+	private HashMap<String, Integer> subject;
+	private HashMap<String, Integer> body;
 	private boolean isSpam;
 
 	public Document() {

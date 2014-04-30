@@ -7,9 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -236,37 +234,37 @@ public class NaiveBayes {
 	 */
 	public void loadCSVFile(String filename) throws IOException {
 		reset(); // Ensure a clean Naive Bayes.
-
+	
 		inputFilename = filename;
-
+	
 		Scanner content = new Scanner(new FileReader(new File(filename)));
 		String[] line;
 		String classType;
-
+	
 		// Use the header line to get the feature size and names.
 		featureHeaders = content.nextLine().split(",");
-
+	
 		numOfFeatures = featureHeaders.length - 1;
-
+	
 		// All other lines
 		while (content.hasNextLine()) {
 			line = content.nextLine().split(",");
 			classType = line[line.length - 1];
-
+	
 			// Create a new example and add it to the examples.
 			Example e = new Example(classType, numOfFeatures);
 			for (int i = 0; i < numOfFeatures; ++i) {
 				e.add(i, Double.parseDouble(line[i]));
 			}
 			examples.add(e);
-
+	
 			// Add this example to the array of its class type.
 			if (!classExamples.containsKey(classType)) {
 				classExamples.put(classType, new ArrayList<Example>());
 			}
 			classExamples.get(classType).add(e);
 		}
-
+	
 		content.close();
 	}
 
@@ -277,6 +275,7 @@ public class NaiveBayes {
 	 * after data has been loaded.
 	 */
 	public void train() {
+		// TODO: CHeck if data is loaded?
 		featureStats = FeatureStatistics.generateFeatureStatisticsArray(numOfFeatures, classExamples);
 	}
 
