@@ -3,6 +3,7 @@ import java.io.IOException;
 import classification.NaiveBayes;
 
 /**
+ * Demonstrates the use of the NaiveBayes class.
  * 
  * @author Craig Sketchley
  * @author Rohan Brooker
@@ -10,10 +11,6 @@ import classification.NaiveBayes;
  */
 public class NaiveBayesExample {
 
-	/**
-	 * 
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		NaiveBayes nb = new NaiveBayes();
 		

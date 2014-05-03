@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 /**
+ * A Naive Bayes classfier.
  * 
  * @author Craig Sketchley
  * @author Rohan Brooker
@@ -64,63 +65,74 @@ public class NaiveBayes {
 	}
 
 	/**
+	 * Completes k-fold stratified cross validation on the loaded data, printing
+	 * the accuracy to the console. It also outputs the stratification to CSV in
+	 * the correct format.
 	 * 
-	 * @param kFold
+	 * @param K
 	 */
-	public void stratifiedCrossValidation(int kFold) {
+	public void stratifiedCrossValidation(int K) {
 		HashMap<String, Integer> classTypeProportion = new HashMap<String, Integer>();
 		HashMap<String, Integer> classExamplesIndex = new HashMap<String, Integer>();
 
 		for (String className : classNames()) {
 			classTypeProportion.put(className, classExamples.get(className)
-					.size() / kFold);
+					.size() / K);
 			classExamplesIndex.put(className, 0);
 		}
 
 		ArrayList<ArrayList<Example>> strata = new ArrayList<ArrayList<Example>>();
 
-		for (int i = 0; i < kFold; i++) {
+		for (int i = 0; i < K; i++) {
 			strata.add(new ArrayList<Example>());
 			for (String className : classNames()) {
 				for (int j = 0; j < classTypeProportion.get(className); j++) {
-					strata.get(i).add(classExamples.get(className).get(classExamplesIndex.get(className)));
-					classExamplesIndex.put(className, classExamplesIndex.get(className) + 1);
+					strata.get(i).add(
+							classExamples.get(className).get(
+									classExamplesIndex.get(className)));
+					classExamplesIndex.put(className,
+							classExamplesIndex.get(className) + 1);
 				}
 			}
 		}
 
-		// TODO: Divide up the remaining examples... can it be improved?
-		// Currently sharing the remaining examples of each class amongst the folds.
+		// Currently sharing the remaining examples of each class amongst the
+		// folds.
 		int strataIndex = 0;
 		for (String className : classNames()) {
-			for (int i = classExamplesIndex.get(className); i < classExamples.get(className).size(); i++) {
-				strata.get(strataIndex).add(classExamples.get(className).get(i));
-				strataIndex = ++strataIndex % kFold;
+			for (int i = classExamplesIndex.get(className); i < classExamples
+					.get(className).size(); i++) {
+				strata.get(strataIndex)
+						.add(classExamples.get(className).get(i));
+				strataIndex = ++strataIndex % K;
 			}
 		}
 
-		//File name output and map to store each fold
-		String outputFilename = inputFilename.substring(0, inputFilename.length() - 4) + "-folds.csv";
+		// File name output and map to store each fold
+		String outputFilename = inputFilename.substring(0,
+				inputFilename.length() - 4)
+				+ "-folds.csv";
 
-		double[] accuracy = new double[kFold];
+		double[] accuracy = new double[K];
 
 		HashMap<String, ArrayList<Example>> classExamplesBackup = classExamples;
 
 		// For each strata, run the naive bayes on all other strata.
-		for (int i = 0; i < kFold; i++) {
+		for (int i = 0; i < K; i++) {
 			ArrayList<Example> testSet = strata.get(i);
 
 			// Create a new classExamples from the other strata.
 			classExamples = new HashMap<String, ArrayList<Example>>();
 
 			// Every other strata...
-			for (int j = 0; j < kFold; j++) {
+			for (int j = 0; j < K; j++) {
 				if (i == j) {
 					continue;
 				}
 				for (Example e : strata.get(j)) {
 					if (!classExamples.containsKey(e.getClassName())) {
-						classExamples.put(e.getClassName(), new ArrayList<Example>());
+						classExamples.put(e.getClassName(),
+								new ArrayList<Example>());
 					}
 					classExamples.get(e.getClassName()).add(e);
 				}
@@ -131,23 +143,24 @@ public class NaiveBayes {
 
 			accuracy[i] = getClassificationAccuracy(testSet);
 		}
-		//Output the folds to a CSV file
-		outputToCSV(strata, kFold, outputFilename);
+		// Output the folds to a CSV file
+		outputToCSV(strata, K, outputFilename);
 		double total = 0;
 
-		System.out.println(kFold + "-fold Stratified Cross Validation:");
+		System.out.println(K + "-fold Stratified Cross Validation:");
 		for (int i = 0; i < accuracy.length; i++) {
 			System.out.println("Run " + (i + 1) + ": " + accuracy[i]);
 			total += accuracy[i];
 		}
 
-		System.out.println("Average for all Runs: " + (total / kFold));
+		System.out.println("Average for all Runs: " + (total / K));
 
 		// Set classExamples back to normal.
 		classExamples = classExamplesBackup;
 	}
 
 	/**
+	 * Calculates the accuracy of the classification on the supplied test set of examples.
 	 * 
 	 * @param testSet
 	 * @return
@@ -172,8 +185,6 @@ public class NaiveBayes {
 	 * @return
 	 */
 	private String classify(Example input) {
-		// TODO: How to break ties.
-
 		double maxProb = Double.NEGATIVE_INFINITY;
 		String classifiedType = "UNCLASSIFIED";
 
@@ -183,11 +194,8 @@ public class NaiveBayes {
 		for (String className : classNames()) {
 			totalLogProb = 0;
 			for (int i = 0; i < numOfFeatures; i++) {
-				logProb = featureStats[i].calculateLogProbabilityForClass(className, input.getValue(i));
-				if ((new Double(logProb)).equals(Double.NaN)) {
-					// TODO: Skipping values with zero variance. Could do this some other way.
-					continue;
-				}
+				logProb = featureStats[i].calculateLogProbabilityForClass(
+						className, input.getValue(i));
 				totalLogProb += logProb;
 			}
 			totalLogProb += probabilityOfClass(className);
@@ -201,11 +209,12 @@ public class NaiveBayes {
 	}
 
 	/**
-	 * Calculates and returns the probability of an example being a given class type
-	 * based on the proportions of the training data.
+	 * Calculates and returns the probability of an example being a given class
+	 * type based on the proportions of the training data.
 	 * 
-	 * @param className	the name of the class to calculate the probability
-	 * @return	the probability
+	 * @param className
+	 *            the name of the class to calculate the probability
+	 * @return the probability
 	 */
 	private double probabilityOfClass(String className) {
 		return classExamples.get(className).size() / (double) examples.size();
@@ -224,37 +233,37 @@ public class NaiveBayes {
 	 */
 	public void loadCSVFile(String filename) throws IOException {
 		reset(); // Ensure a clean Naive Bayes.
-	
+
 		inputFilename = filename;
-	
+
 		Scanner content = new Scanner(new FileReader(new File(filename)));
 		String[] line;
 		String classType;
-	
+
 		// Use the header line to get the feature size and names.
 		featureHeaders = content.nextLine().split(",");
-	
+
 		numOfFeatures = featureHeaders.length - 1;
-	
+
 		// All other lines
 		while (content.hasNextLine()) {
 			line = content.nextLine().split(",");
 			classType = line[line.length - 1];
-	
+
 			// Create a new example and add it to the examples.
 			Example e = new Example(classType, numOfFeatures);
 			for (int i = 0; i < numOfFeatures; ++i) {
 				e.add(i, Double.parseDouble(line[i]));
 			}
 			examples.add(e);
-	
+
 			// Add this example to the array of its class type.
 			if (!classExamples.containsKey(classType)) {
 				classExamples.put(classType, new ArrayList<Example>());
 			}
 			classExamples.get(classType).add(e);
 		}
-	
+
 		content.close();
 	}
 
@@ -265,17 +274,21 @@ public class NaiveBayes {
 	 * after data has been loaded.
 	 */
 	public void train() {
-		// TODO: CHeck if data is loaded?
-		featureStats = FeatureStatistics.generateFeatureStatisticsArray(numOfFeatures, classExamples);
+		if (numOfFeatures > 0) {
+			featureStats = FeatureStatistics.generateFeatureStatisticsArray(
+					numOfFeatures, classExamples);
+		}
 	}
 
 	/**
-	 * 
 	 * Output each fold breakdown to a single CSV file
 	 * 
+	 * @param strata
+	 * @param kFold
+	 * @param fileName
 	 */
-	private void outputToCSV(ArrayList<ArrayList<Example>> strata, int kFold, String fileName){
-
+	private void outputToCSV(ArrayList<ArrayList<Example>> strata, int kFold,
+			String fileName) {
 		File output = new File(fileName);
 		BufferedWriter writer;
 		double value = 0;
@@ -284,10 +297,10 @@ public class NaiveBayes {
 			writer = new BufferedWriter(new FileWriter(output));
 
 			for (int i = 0; i < kFold; i++) {
-				writer.write("fold" + (i+1));
+				writer.write("fold" + (i + 1));
 				writer.newLine();
 				for (Example e : strata.get(i)) {
-					for(int j = 0; j < e.getNumberOfValues(); j++){
+					for (int j = 0; j < e.getNumberOfValues(); j++) {
 						value = e.getValue(j);
 						writer.write(String.valueOf(value) + ",");
 					}
@@ -298,7 +311,8 @@ public class NaiveBayes {
 			}
 			writer.close();
 		} catch (IOException o) {
-			System.out.println("Error writing to " + fileName + " " + o.toString());
+			System.out.println("Error writing to " + fileName + " "
+					+ o.toString());
 			return;
 		}
 	}

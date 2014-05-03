@@ -2,7 +2,14 @@ package featureSelection;
 
 import dataPreparation.Word;
 
-public class DocumentFrequency implements FeatureScoreable {
+/**
+ * Calculates the Document Frequency for a word.
+ * 
+ * @author Craig Sketchley
+ * @author Rohan Brooker
+ * 
+ */
+class DocumentFrequency implements FeatureScoreable {
 	
 	@Override
 	public void setFeatureScore(Word word, int spamCount, int hamCount) {

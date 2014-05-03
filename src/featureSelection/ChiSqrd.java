@@ -2,7 +2,14 @@ package featureSelection;
 
 import dataPreparation.Word;
 
-public class ChiSqrd implements FeatureScoreable {
+/**
+ * Calculates the Chi Squared score for a word/feature.
+ * 
+ * @author Craig Sketchley
+ * @author Rohan Brooker
+ * 
+ */
+class ChiSqrd implements FeatureScoreable {
 
 	private double compute(int wordSpamCount, int wordHamCount, int spamCount,
 			int hamCount) {

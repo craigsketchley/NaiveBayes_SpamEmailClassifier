@@ -2,8 +2,24 @@ package featureSelection;
 
 import dataPreparation.Word;
 
-public class OddsRatio implements FeatureScoreable {
+/**
+ * A feature score based on the Odds Ratio method.
+ * 
+ * @author Craig Sketchley
+ * @author Rohan Brooker
+ *
+ */
+class OddsRatio implements FeatureScoreable {
 
+	/**
+	 * Returns the sum of all the classes feature score.
+	 * 
+	 * @param wordSpamCount
+	 * @param wordHamCount
+	 * @param spamCount
+	 * @param hamCount
+	 * @return
+	 */
 	private double compute(int wordSpamCount, int wordHamCount, int spamCount,
 			int hamCount) {
 		int nonWordSpamCount = spamCount - wordSpamCount;
@@ -15,7 +31,15 @@ public class OddsRatio implements FeatureScoreable {
 		return spamScore + hamScore;
 	}
 	
-	
+	/**
+	 * The Odds Ratio formula.
+	 * 
+	 * @param A
+	 * @param B
+	 * @param C
+	 * @param D
+	 * @return
+	 */
 	private double getScore(int A, int B, int C, int D) {
 		double denom = (B * C != 0) ? B * C : 1;
 		return (A * D) / denom;

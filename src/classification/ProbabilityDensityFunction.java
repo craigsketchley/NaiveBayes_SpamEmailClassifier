@@ -1,23 +1,32 @@
 package classification;
 
 /**
+ * Represents a normal probability distribution of a feature set.
  * 
  * @author Craig Sketchley
  * @author Rohan Brooker
  *
  */
-public class ProbabilityDensityFunction {
+class ProbabilityDensityFunction {
 	private final double mean;
 	private final double stddv;
 	private final double exponentDivisor;
 	private final double divisor;
+	
+	private final double STD_DEV_SMALL = 1e-4;
 
 	/**
+	 * Creates a probability density function from a mean and standard deviation.
 	 * 
 	 * @param mean
 	 * @param stddv
 	 */
 	public ProbabilityDensityFunction(double mean, double stddv) {
+		// Make the std dev very small if == 0
+		if (stddv == 0) {
+			stddv = STD_DEV_SMALL;
+		}
+		
 		this.mean = mean;
 		this.stddv = stddv;
 		this.exponentDivisor = 1.0 / (-2 * stddv * stddv);
@@ -45,6 +54,7 @@ public class ProbabilityDensityFunction {
 	}
 	
 	/**
+	 * Returns the mean.
 	 * 
 	 * @return
 	 */
@@ -53,6 +63,7 @@ public class ProbabilityDensityFunction {
 	}
 	
 	/**
+	 * Returns the standard deviation.
 	 * 
 	 * @return
 	 */

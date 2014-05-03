@@ -1,6 +1,13 @@
 package normalisation;
 
-public class CosineNormalisation implements Normalisable {
+/**
+ * Normalises the input vectors to unit vectors.
+ * 
+ * @author Craig Sketchley
+ * @author Rohan Brooker
+ * 
+ */
+class CosineNormalisation implements Normalisable {
 
 	@Override
 	public void normalise(double[][] inputVectors) {

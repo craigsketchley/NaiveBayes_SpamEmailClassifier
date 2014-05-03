@@ -2,7 +2,14 @@ package featureSelection;
 
 import dataPreparation.Word;
 
-public class CategoricalProportionalDifference implements FeatureScoreable {
+/**
+ * Calculates the Categorical Proportional Difference for a word/feature.
+ * 
+ * @author Craig Sketchley
+ * @author Rohan Brooker
+ * 
+ */
+class CategoricalProportionalDifference implements FeatureScoreable {
 
 	private double compute(int wordSpamCount, int wordHamCount, int spamCount, int hamCount) {
 		double denom = wordHamCount + wordSpamCount;

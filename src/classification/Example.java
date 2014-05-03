@@ -1,17 +1,18 @@
 package classification;
 
 /**
- * TODO:
+ * A feature vector for a given document containing a classification.
+ * 
  * @author Craig Sketchley
  * @author Rohan Brooker
  *
  */
-public class Example {
+class Example {
 	private double[] values;
 	private String className = "UNCLASSIFIED"; // default value.
 	
 	/**
-	 * TODO:
+	 * Creates an Example instance with a classification type and number of values to be stored.
 	 * @param classType
 	 * @param numOfValues
 	 */
@@ -21,7 +22,8 @@ public class Example {
 	}
 	
 	/**
-	 * TODO:
+	 * Creates an Example instance with no classification type.
+	 * 
 	 * @param className
 	 * @param numOfValues
 	 */
@@ -30,7 +32,8 @@ public class Example {
 	}
 	
 	/**
-	 * TODO:
+	 * Adds a value at the given index.
+	 * 
 	 * @param index
 	 * @param value
 	 */
@@ -39,7 +42,8 @@ public class Example {
 	}
 	
 	/**
-	 * TODO:
+	 * Returns the value at a given index.
+	 * 
 	 * @param index
 	 * @return
 	 */
@@ -48,23 +52,24 @@ public class Example {
 	}
 	
 	/**
-	 * TODO:
+	 * Returns the size of the feature vector.
+	 * 
 	 * @return
 	 */
 	public int getNumberOfValues() {
 		return values.length;
 	}
 	
+	/**
+	 * Returns the classification of this feature vector.
+	 * 
+	 * @return
+	 */
 	public String getClassName() {
 		return className;
 	}
 	
-	
-	/**
-	 * Returns a String representation of this Object.
-	 * 
-	 * @return	the Object as a String
-	 */
+	@Override
 	public String toString() {
 		String output = "{" + className + ", [";
 		for (int i = 0; i < values.length; i++) {

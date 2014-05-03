@@ -2,7 +2,14 @@ package featureSelection;
 
 import dataPreparation.Word;
 
-public class MutualInformation implements FeatureScoreable {
+/**
+ * Calculates the Mutual Information score for a word/feature.
+ * 
+ * @author Craig Sketchley
+ * @author Rohan Brooker
+ * 
+ */
+class MutualInformation implements FeatureScoreable {
 
 	private double compute(int wordSpamCount, int wordHamCount, int spamCount,
 			int hamCount) {

@@ -11,7 +11,7 @@ import java.util.HashMap;
  * @author Rohan Brooker
  * 
  */
-public class FeatureStatistics {
+class FeatureStatistics {
 	// The probability density functions for each class, keyed on the class
 	// names.
 	private HashMap<String, ProbabilityDensityFunction> classProbabilityFunctions;
@@ -23,7 +23,14 @@ public class FeatureStatistics {
 		classProbabilityFunctions = new HashMap<String, ProbabilityDensityFunction>();
 	}
 	
-	private void addClassStatistics(String className, double mean, double stddv, int count) {
+	/**
+	 * Creates and stores a probability density function for the given class of this feature.
+	 * 
+	 * @param className
+	 * @param mean
+	 * @param stddv
+	 */
+	private void addClassStatistics(String className, double mean, double stddv) {
 		classProbabilityFunctions.put(className, new ProbabilityDensityFunction(mean, stddv));
 	}
 
@@ -106,7 +113,7 @@ public class FeatureStatistics {
 				double mean = sum /count;
 				double stddv = sqrdSum / count - mean * mean;
 				
-				output[featureIndex].addClassStatistics(className, mean, stddv, count);
+				output[featureIndex].addClassStatistics(className, mean, stddv);
 			}
 		}
 		
