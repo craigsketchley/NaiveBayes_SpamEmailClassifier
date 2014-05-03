@@ -8,14 +8,14 @@ ________
 
 This project is in 2 main parts, the email processor and the Naive Bayes classifier.
 
-Examples of how to use both of these are in [EmailProcessorExample.java] and [NaiveBayesExample.java].
+Examples of how to use both of these are in [EmailProcessorExample.java](src/EmailProcessorExample.java) and [NaiveBayesExample.java](src/NaiveBayesExample.java).
 
 ### Email Processing
 
 To process a folder of emails, you need to create `EmailProcessor` instance and pass in various attributes to the constructor. These are:
 
 * `emailFolder` - The folder where all the email files are stored.
-* `stopwordsFilename1 - The file containing any stopwords to be ignored when processing the emails. This can be `null`. 
+* `stopwordsFilename` - The file containing any stopwords to be ignored when processing the emails. This can be `null`. 
 * `featureSelectionType` - A `FeatureSelectionType` enum, indicating what type of feature selection method you would like to use. These could be one of the following:
     - `DOCUMENT_FREQUENCY`
     - `MUTUAL_INFORMATION`
@@ -32,4 +32,6 @@ Once you have successfully constructed a EmailProcessor object, simply call `out
 
 ### Naive Bayes Classifier
 
-To begin classification, create a `NaiveBayes` instance. Then call `loadCSVFile(String filename)` on that instance to load data from a CSV file. Finally, to complete k-Fold stratified cross validation call `stratifiedCrossValidation(int K)`. This will print the accuracy results to the console and output the stratification to 2 CSV files.
+To begin classification, create a `NaiveBayes` instance then call `loadCSVFile(String filename)` to load data from a CSV file.
+
+Finally, to complete k-Fold stratified cross validation call `stratifiedCrossValidation(int K)`. This will print the accuracy results to the console and output the stratification to 2 CSV files.
