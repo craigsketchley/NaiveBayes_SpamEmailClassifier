@@ -25,7 +25,7 @@ To process a folder of emails, you need to create `EmailProcessor` instance and 
     - `CPD`
 * `normalisationType` - A `NormalisationType` enum, indicating what type of normalisation method you would like to apply to the selected feature vectors. These could be one of the following:
     - `COSINE_NORM`
-    - `DISTRIBUTION_NORM`
+    - `STD_SCORE_NORM`
     - `NONE`
 
 Once you have successfully constructed a EmailProcessor object, simply call `outputFeatureSelectionCSV(int K)` to output the top `K` features to a `body.csv` and `subject.csv`.

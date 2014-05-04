@@ -111,7 +111,7 @@ public class EmailProcessor {
 		// Order the words, picking the top K words.
 		Word[] topBodyWords = getTopWords(K, bodyBagOfWords);
 		Word[] topSubjectWords = getTopWords(K, subjectBagOfWords);
-
+		
 		// Apply TF*IDF to each word.
 		double[][] bodyWeightMatrix = calculateTfIdf(topBodyWords, bodyDocList);
 		double[][] subjectWeightMatrix = calculateTfIdf(topSubjectWords,
@@ -126,8 +126,7 @@ public class EmailProcessor {
 			outputToCSV(BODY_FILENAME, bodyWeightMatrix, bodyDocList);
 			outputToCSV(SUBJECT_FILENAME, subjectWeightMatrix, subjectDocList);
 		} catch (IOException e) {
-			System.out
-					.println("Had a bit of trouble outputing to the csv files. Here's the stack trace...");
+			System.out.println("Had a bit of trouble outputing to the csv files.");
 			e.printStackTrace();
 		}
 	}

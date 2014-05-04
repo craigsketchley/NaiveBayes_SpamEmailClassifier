@@ -1,14 +1,13 @@
 package normalisation;
 
 /**
- * Normalises the distribution of input vectors to their standard deviation is 1
- * and mean is 0.
+ * Normalises the distribution of input vectors to their standard deviation is 1.
  * 
  * @author Craig Sketchley
  * @author Rohan Brooker
  * 
  */
-class DistributionNormalisation implements Normalisable {
+class StandardScoreNormalisation implements Normalisable {
 
 	@Override
 	public void normalise(double[][] inputVectors) {
@@ -20,17 +19,20 @@ class DistributionNormalisation implements Normalisable {
 
 		for (int dimIndex = 0; dimIndex < vectorDimension; dimIndex++) {
 			double sum = 0;
-			double sqrdSum = 0;
 			for (int i = 0; i < inputVectors.length; i++) {
 				sum += inputVectors[i][dimIndex];
-				sqrdSum += inputVectors[i][dimIndex]
-						* inputVectors[i][dimIndex];
 			}
-			double mean = sum / vectorDimension;
-			double stdDev = sqrdSum / vectorDimension - mean * mean;
+			double mean = sum / inputVectors.length;
+			
+			sum = 0;
+			for (int i = 0; i < inputVectors.length; i++) {
+				sum += (inputVectors[i][dimIndex] - mean) * (inputVectors[i][dimIndex] - mean);
+			}
+			
+			double stdDev = Math.sqrt(sum / inputVectors.length);
 
 			for (int i = 0; i < inputVectors.length; i++) {
-				inputVectors[i][dimIndex] -= mean; // mean of zero.
+//				inputVectors[i][dimIndex] -= mean; // mean of zero
 				inputVectors[i][dimIndex] /= stdDev; // stdDev of one.
 			}
 		}

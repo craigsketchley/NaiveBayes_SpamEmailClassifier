@@ -14,7 +14,7 @@ public class EmailProcessorExample {
 	
 	public static void main(String[] args) {
 		String emailFolder = "lingspam-mini600";
-		String stopWordsFilename = "data/english-edit.stop";
+		String stopWordsFilename = "data/english.stop";
 				
 		EmailProcessor ep = new EmailProcessor(emailFolder,
 				 stopWordsFilename,

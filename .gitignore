@@ -1,2 +1,9 @@
 .DS_Store
 bin/
+/report
+/Body Results (Using DF).txt
+/Subject Results (Using DF).txt
+/Top100withOutStopWords.txt
+/Top100withStopWords.txt
+data/iris-folds.csv
+data/iris.csv

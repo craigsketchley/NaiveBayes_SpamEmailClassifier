@@ -111,7 +111,7 @@ public class Word implements Comparable<Word> {
 	
 	@Override
 	public String toString() {
-		return word + " [fs = " + featureScore + ", df = " + getDocumentFrequency() + "]";
+		return word + " [" + (int) featureScore + "]";
 	}
 
 	@Override

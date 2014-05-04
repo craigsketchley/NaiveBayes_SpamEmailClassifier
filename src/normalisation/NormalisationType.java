@@ -9,7 +9,7 @@ package normalisation;
  */
 public enum NormalisationType {
 	COSINE_NORM,
-	DISTRIBUTION_NORM,
+	STD_SCORE_NORM,
 	NONE;
 	
 	/**
@@ -21,8 +21,8 @@ public enum NormalisationType {
 		switch (this) {
 		case COSINE_NORM:
 			return new CosineNormalisation();
-		case DISTRIBUTION_NORM:
-			return new DistributionNormalisation();
+		case STD_SCORE_NORM:
+			return new StandardScoreNormalisation();
 		case NONE:
 			return new PassThroughNormalisation();
 		}
